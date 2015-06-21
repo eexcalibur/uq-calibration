@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	#assign a job for avail nodes
 	
 	while len(job_q):
-		if pool_res.get_avail_nodes() and pool_res.ass_jobs_num < windows_size:
+		if pool_res.get_avail_cores() and pool_res.ass_jobs_num < windows_size:
 			work_id=job_q.pop(0)
 			pool_res.ass_jobs_num = pool_res.ass_jobs_num + 1
 			#running model
@@ -31,3 +31,5 @@ if __name__ == '__main__':
 			job_scheduler.check_run_model(pool_res)
 
 
+#	pool_res.get_avail_cores()
+#	print pool_res.avail_res.keys()

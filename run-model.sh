@@ -1,36 +1,25 @@
-#!/bin/bash 
-
-#create case
-sampling_file="sampling_data"
-paras="CD_COASTAL:CD_INDIAN:CD_PACIFIC:CD_ATLANTIC"
-licom_base="/share1/zhangtao/LICOM_tide150430/"
-case_templ="$licom_base/Exp_notracer/exe/"
-diag_templ="$licom_base/tide_diag/"
-wrk_dir="`pwd`"
-
-mkdir -p $licom_base/Exp_notracer_$2
-cp -rp $case_templ  $licom_base/Exp_notracer_$2/exe
-cp -rp $diag_templ  $licom_base/Exp_notracer_$2/tide_diag
-echo `date`: "creating case [EXP_notracer_$2] successfully"
+#!/bin/bash
+paras="hkconv_c0:hkconv_cmftau:cldfrc_rhminh:cldfrc_rhminl:cldsed_ai"
+pwd_dir="/home/CSM-tunner/UQ/CAPT/llnl_capt/uq_calibrator/"
+case_path="/share1/CSM-tunner/cesm.run/capt_cam5_tune/cesm_case$2"
+metrics_path="$case_path/metrics"
 
 #run
-cd  $licom_base/Exp_notracer_$2/exe
+mv  $pwd_dir/mpd.hosts$2 $case_path/mpd.hosts
+cd  $case_path
 paras_num=`echo $paras | awk -F ':' '{print NF}'`
 for i in `seq 1 $paras_num`
 do
 	para=`echo $paras |cut -d : -f $i`
-	var_line=`sed -n "$2p" $wrk_dir/$sampling_file`
+	var_line=`cat $case_path/parameters`
     para_val="$para=`echo $var_line |cut -d ' ' -f $i`"
     #echo $para_val
-    sed -i "/\<$para\>/c \\  $para_val" ocn.parm
+    sed -i "/\<$para\>/c \\  $para_val" $case_path/atm_in
 done
 echo `date`: "configure case [EXP_notracer_$2] successfully"
-./run $3 $4 > output
-#sleep 10
-mv output  ocn.parm  ub_000106.dat vb_000106.dat z0_000106.dat $licom_base/Exp_notracer_$2/tide_diag/
+pwd
+./run_cesm.sh > output
 
 #diag
-cd $licom_base/Exp_notracer_$2/tide_diag
-./diag_metrics
-rm ub_000106.dat vb_000106.dat z0_000106.dat
-rm -rf $licom_base/Exp_notracer_$2/exe
+cd $metrics_path
+./get_metrics.csh > metrics.log
